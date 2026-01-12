@@ -1,0 +1,31 @@
+# =============================================================================
+# Docker Compose Production Override
+# =============================================================================
+# Use with: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+# =============================================================================
+
+services:
+  web:
+    build:
+      target: production # Use production stage
+    environment:
+      - FLASK_ENV=production
+      - FLASK_DEBUG=0
+    volumes: [] # Remove development volume mounts
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 512M
+        reservations:
+          cpus: "0.5"
+          memory: 256M
+
+  db:
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-change_in_production}
+    deploy:
+      resources:
+        limits:
+          cpus: "1"
+          memory: 1G

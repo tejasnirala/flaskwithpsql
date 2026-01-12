@@ -1,0 +1,172 @@
+# =============================================================================
+# Pre-commit Configuration
+# =============================================================================
+# Runs checks before each commit to ensure code quality and consistency
+#
+# Installation:
+#   pip install pre-commit
+#   pre-commit install
+#   pre-commit install --hook-type commit-msg  # For commit message validation
+#
+# Manual run:
+#   pre-commit run --all-files
+# =============================================================================
+
+repos:
+  # ===========================================================================
+  # General checks
+  # ===========================================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Prevent large files from being committed
+      - id: check-added-large-files
+        args: ["--maxkb=1000"]
+
+      # Check for files that have merge conflict strings
+      - id: check-merge-conflict
+
+      # Ensure files end with a newline
+      - id: end-of-file-fixer
+
+      # Remove trailing whitespace
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+      # Check YAML files for syntax errors
+      - id: check-yaml
+        args: [--unsafe] # Allow custom tags
+
+      # Check JSON files for syntax errors
+      - id: check-json
+
+      # Check for debugger imports
+      - id: debug-statements
+
+      # Ensure requirements.txt is sorted
+      - id: requirements-txt-fixer
+
+      # Check for private keys
+      - id: detect-private-key
+
+      # Check Python files for valid syntax
+      - id: check-ast
+
+      # Check for case conflicts in filenames
+      - id: check-case-conflict
+
+      # Check for symlinks that don't point anywhere
+      - id: check-symlinks
+
+      # Check docstring is first in module
+      - id: check-docstring-first
+
+      # Don't allow committing to main/master directly
+      - id: no-commit-to-branch
+        args: ["--branch", "main", "--branch", "master"]
+
+  # ===========================================================================
+  # Commit Message Validation (Conventional Commits)
+  # ===========================================================================
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.1.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - feat # New feature
+          - fix # Bug fix
+          - docs # Documentation only
+          - style # Formatting, no code change
+          - refactor # Code restructuring
+          - perf # Performance improvement
+          - test # Adding/updating tests
+          - build # Build system changes
+          - ci # CI configuration
+          - chore # Maintenance tasks
+          - revert # Revert previous commit
+
+  # ===========================================================================
+  # Python Code Formatting - Black
+  # ===========================================================================
+  - repo: https://github.com/psf/black
+    rev: 24.1.1
+    hooks:
+      - id: black
+        language_version: python3
+        args: ["--line-length=100"]
+
+  # ===========================================================================
+  # Import Sorting - isort
+  # ===========================================================================
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile=black", "--line-length=100"]
+
+  # ===========================================================================
+  # Linting - Flake8
+  # ===========================================================================
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        args:
+          - "--max-line-length=100"
+          - "--extend-ignore=E203,W503" # Black compatibility
+          - "--exclude=venv,migrations,__pycache__"
+        additional_dependencies:
+          - flake8-bugbear # Additional checks
+          - flake8-comprehensions # Better list/dict comprehensions
+
+  # ===========================================================================
+  # Type Checking - MyPy (Optional - can be skipped with SKIP=mypy)
+  # ===========================================================================
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        args:
+          - "--ignore-missing-imports"
+          - "--no-error-summary"
+          - "--disable-error-code=union-attr"
+          - "--disable-error-code=assignment"
+          - "--disable-error-code=var-annotated"
+          - "--disable-error-code=name-defined"
+          - "--disable-error-code=no-any-return"
+        additional_dependencies:
+          - types-requests
+        exclude: "tests/|migrations/"
+
+  # ===========================================================================
+  # Security Checks - Bandit
+  # ===========================================================================
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.7.7
+    hooks:
+      - id: bandit
+        args: ["-c", "pyproject.toml"]
+        additional_dependencies: ["bandit[toml]"]
+        exclude: "tests/"
+
+  # ===========================================================================
+  # Markdown Linting
+  # ===========================================================================
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.39.0
+    hooks:
+      - id: markdownlint
+        args: ["--fix", "--disable", "MD013", "MD033", "MD041"]
+
+# =============================================================================
+# Configuration
+# =============================================================================
+default_language_version:
+  python: python3
+
+# Stages for hooks
+default_stages: [pre-commit]
+
+# Fail fast - stop on first failure
+fail_fast: false
