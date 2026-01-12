@@ -91,9 +91,9 @@ class User(db.Model):
 
 **❌ The Problem:**
 
-- Your Python code says `phone` exists
-- Your database still has the OLD structure (no `phone` column)
-- When you try to save a phone number → **ERROR!**
+-   Your Python code says `phone` exists
+-   Your database still has the OLD structure (no `phone` column)
+-   When you try to save a phone number → **ERROR!**
 
 **Without migrations, you have to:**
 
@@ -121,11 +121,11 @@ $ flask db upgrade
 
 **Benefits:**
 
-- Automatic detection of model changes
-- SQL is generated for you
-- Same commands work everywhere (local, staging, production)
-- Changes are tracked in files (can be committed to Git)
-- Easy to undo: `flask db downgrade`
+-   Automatic detection of model changes
+-   SQL is generated for you
+-   Same commands work everywhere (local, staging, production)
+-   Changes are tracked in files (can be committed to Git)
+-   Easy to undo: `flask db downgrade`
 
 ---
 
@@ -160,7 +160,7 @@ $ flask db upgrade
   │ 1. Reads your Python models                             │
   │ 2. Connects to database, reads current structure        │
   │ 3. Compares them: "Ah! 'phone' column is missing!"      │
-  │ 4. Generates migration file with the difference          │
+  │ 4. Generates migration file with the difference         │
   └─────────────────────────────────────────────────────────┘
 
   Creates: migrations/versions/abc123_add_phone_to_users.py
@@ -173,7 +173,7 @@ $ flask db upgrade
 
   Flask-Migrate:
   ┌─────────────────────────────────────────────────────────┐
-  │ 1. Reads migration file                                  │
+  │ 1. Reads migration file                                 │
   │ 2. Runs the upgrade() function                          │
   │ 3. Executes: ALTER TABLE users ADD COLUMN phone ...     │
   │ 4. Records this migration as "applied"                  │
@@ -186,13 +186,13 @@ $ flask db upgrade
 
 | Git (Code Version Control) | Flask-Migrate (Database Version Control) |
 | -------------------------- | ---------------------------------------- |
-| `git status`               | `flask db current`                        |
+| `git status`               | `flask db current`                       |
 | `git diff`                 | (automatic on migrate)                   |
 | `git add .`                | (automatic on migrate)                   |
-| `git commit -m "message"`  | `flask db migrate -m "message"`           |
-| `git push`                 | `flask db upgrade`                        |
-| `git revert`               | `flask db downgrade`                      |
-| `git log`                  | `flask db history`                        |
+| `git commit -m "message"`  | `flask db migrate -m "message"`          |
+| `git push`                 | `flask db upgrade`                       |
+| `git revert`               | `flask db downgrade`                     |
+| `git log`                  | `flask db history`                       |
 | `.git/` folder             | `migrations/` folder                     |
 
 ---
@@ -207,9 +207,9 @@ flask db init
 
 **What it does:**
 
-- Creates the `migrations/` folder
-- Sets up Alembic configuration
-- Only needs to be run once per project
+-   Creates the `migrations/` folder
+-   Sets up Alembic configuration
+-   Only needs to be run once per project
 
 **What it creates:**
 
@@ -233,9 +233,9 @@ flask db migrate -m "Description of changes"
 
 **What it does:**
 
-- Compares your Python models to the database
-- Detects differences (new tables, columns, changes, deletions)
-- Creates a migration file in `migrations/versions/`
+-   Compares your Python models to the database
+-   Detects differences (new tables, columns, changes, deletions)
+-   Creates a migration file in `migrations/versions/`
 
 **Example output:**
 
@@ -282,9 +282,9 @@ flask db upgrade
 
 **What it does:**
 
-- Runs all pending migrations in order
-- Executes the `upgrade()` function in each
-- Updates `alembic_version` table to track what's applied
+-   Runs all pending migrations in order
+-   Executes the `upgrade()` function in each
+-   Updates `alembic_version` table to track what's applied
 
 **Example:**
 
@@ -309,8 +309,8 @@ flask db downgrade
 
 **What it does:**
 
-- Reverts the last applied migration
-- Executes the `downgrade()` function
+-   Reverts the last applied migration
+-   Executes the `downgrade()` function
 
 **Example:**
 
@@ -370,14 +370,14 @@ This shows which migration your database is currently at.
 
 | Command                     | Purpose                               |
 | --------------------------- | ------------------------------------- |
-| `flask db init`              | Create migrations folder (once)       |
-| `flask db migrate -m "msg"`  | Generate migration from model changes |
-| `flask db upgrade`           | Apply pending migrations              |
-| `flask db downgrade`         | Revert last migration                 |
-| `flask db history`           | Show all migrations                   |
-| `flask db current`           | Show current database version         |
-| `flask db heads`             | Show latest migration(s)              |
-| `flask db show <revision>`   | Show details of a migration           |
+| `flask db init`             | Create migrations folder (once)       |
+| `flask db migrate -m "msg"` | Generate migration from model changes |
+| `flask db upgrade`          | Apply pending migrations              |
+| `flask db downgrade`        | Revert last migration                 |
+| `flask db history`          | Show all migrations                   |
+| `flask db current`          | Show current database version         |
+| `flask db heads`            | Show latest migration(s)              |
+| `flask db show <revision>`  | Show details of a migration           |
 
 ---
 
@@ -545,15 +545,15 @@ Migrations form a linked chain, each pointing to the previous one:
 │  │ Initial (abc123) │───▶│  Add email       │───▶│  Add phone       │   │
 │  │                  │    │  (def456)        │    │  (ghi789)        │   │
 │  │ down_revision:   │    │ down_revision:   │    │ down_revision:   │   │
-│  │ None (first!)     │    │ abc123           │    │ def456           │   │
+│  │ None (first!)    │    │ abc123           │    │ def456           │   │
 │  └──────────────────┘    └──────────────────┘    └──────────────────┘   │
 │         ▲                                                    │          │
 │         │                                                    │          │
 │       base                                                 head         │
-│   (starting point)                                    (latest)          │
+│   (starting point)                                       (latest)       │
 │                                                                         │
-│  flask db downgrade: moves LEFT (reverts)                                │
-│  flask db upgrade: moves RIGHT (applies)                                 │
+│  flask db downgrade: moves LEFT (reverts)                               │
+│  flask db upgrade: moves RIGHT (applies)                                │
 │                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -571,14 +571,14 @@ Migrations form a linked chain, each pointing to the previous one:
 │                                                                         │
 │  Developer A:                                                           │
 │  ├── Adds 'phone' column to User model                                  │
-│  ├── Runs: flask db migrate -m "Add phone"                               │
-│  ├── Commits migration file to Git                                       │
+│  ├── Runs: flask db migrate -m "Add phone"                              │
+│  ├── Commits migration file to Git                                      │
 │  └── Pushes to repository                                               │
 │                                                                         │
 │  Developer B:                                                           │
 │  ├── Pulls from repository                                              │
-│  ├── Gets the new migration file                                         │
-│  ├── Runs: flask db upgrade                                              │
+│  ├── Gets the new migration file                                        │
+│  ├── Runs: flask db upgrade                                             │
 │  └── Database now has phone column too! ✅                              │
 │                                                                         │
 │  No manual SQL sharing needed!                                          │
@@ -597,7 +597,7 @@ Migrations form a linked chain, each pointing to the previous one:
 │  Production Database:     migrations 1, 2, 3                            │
 │                                                                         │
 │  On production server:                                                  │
-│  $ flask db upgrade                                                      │
+│  $ flask db upgrade                                                     │
 │                                                                         │
 │  Result:                                                                │
 │  ├── Migration 1, 2, 3: Already applied, skipped                        │
@@ -684,10 +684,10 @@ Fix:
 
 | Feature                 | Description                                         |
 | ----------------------- | --------------------------------------------------- |
-| **Automatic Detection** | Compares models to database, finds differences       |
+| **Automatic Detection** | Compares models to database, finds differences      |
 | **Generated SQL**       | Creates the SQL for you, no manual writing          |
-| **Version Control**     | Tracks all changes in migration files                |
-| **Team Friendly**       | Migration files can be committed and shared via Git  |
+| **Version Control**     | Tracks all changes in migration files               |
+| **Team Friendly**       | Migration files can be committed and shared via Git |
 | **Rollback Support**    | Easy to undo migrations with `downgrade`            |
 | **Safe Deployments**    | Same commands work on all environments              |
 
