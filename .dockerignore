@@ -1,0 +1,73 @@
+# =============================================================================
+# Docker Ignore File
+# =============================================================================
+# Prevents unnecessary files from being included in the Docker image
+# =============================================================================
+
+# Version control
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+*.md
+docs/
+!README.md
+
+# Virtual environment
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+
+# Type checking
+.mypy_cache/
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Environment files (should use Docker env vars)
+.env
+.env.local
+.env.*.local
+
+# Logs (will be generated in container)
+logs/
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker files (don't include in image)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Development files
+*.bak
+*.tmp
+.pre-commit-config.yaml

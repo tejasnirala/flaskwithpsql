@@ -1,0 +1,44 @@
+# =============================================================================
+# GitHub Actions - Dependency Updates
+# =============================================================================
+# Automatically checks for dependency updates weekly
+# =============================================================================
+
+name: Dependency Update Check
+
+on:
+  schedule:
+    # Run every Monday at 9:00 AM UTC
+    - cron: "0 9 * * 1"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-check:
+    name: Check for Updates
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install pip-tools
+        run: pip install pip-tools
+
+      - name: Check for outdated packages
+        run: |
+          pip install -r requirements.txt
+          echo "## Outdated Packages" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          pip list --outdated >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+
+      - name: Check for security vulnerabilities
+        run: |
+          pip install safety
+          echo "## Security Check" >> $GITHUB_STEP_SUMMARY
+          safety check --full-report >> $GITHUB_STEP_SUMMARY || true
