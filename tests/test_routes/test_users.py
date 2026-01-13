@@ -17,7 +17,7 @@ class TestUserRegistration:
     def test_register_user_success(self, client):
         """Test successful user registration."""
         response = client.post(
-            "/api/users/register",
+            "/api/v1/auth/register",
             json={
                 "username": "newuser",
                 "email": "newuser@example.com",
@@ -40,7 +40,7 @@ class TestUserRegistration:
     def test_register_user_duplicate_username(self, client, sample_user):
         """Test registration with duplicate username fails."""
         response = client.post(
-            "/api/users/register",
+            "/api/v1/auth/register",
             json={
                 "username": "testuser",  # Same as sample_user
                 "email": "different@example.com",
@@ -58,7 +58,7 @@ class TestUserRegistration:
     def test_register_user_duplicate_email(self, client, sample_user):
         """Test registration with duplicate email fails."""
         response = client.post(
-            "/api/users/register",
+            "/api/v1/auth/register",
             json={
                 "username": "differentuser",
                 "email": "test@example.com",  # Same as sample_user
@@ -75,7 +75,7 @@ class TestUserRegistration:
     def test_register_user_validation_errors(self, client):
         """Test registration validation errors."""
         response = client.post(
-            "/api/users/register",
+            "/api/v1/auth/register",
             json={
                 "username": "ab",  # Too short (min 3)
                 "email": "invalid-email",  # Invalid format
@@ -97,7 +97,7 @@ class TestUserLogin:
     def test_login_success(self, client, sample_user):
         """Test successful login."""
         response = client.post(
-            "/api/users/login",
+            "/api/v1/auth/login",
             json={
                 "email": "test@example.com",
                 "password": "TestPassword123!",
@@ -113,7 +113,7 @@ class TestUserLogin:
     def test_login_invalid_password(self, client, sample_user):
         """Test login with wrong password."""
         response = client.post(
-            "/api/users/login",
+            "/api/v1/auth/login",
             json={
                 "email": "test@example.com",
                 "password": "WrongPassword123!",
@@ -129,7 +129,7 @@ class TestUserLogin:
     def test_login_user_not_found(self, client):
         """Test login with non-existent email."""
         response = client.post(
-            "/api/users/login",
+            "/api/v1/auth/login",
             json={
                 "email": "nobody@example.com",
                 "password": "SomePass123!",
@@ -147,7 +147,7 @@ class TestGetUsers:
 
     def test_get_all_users(self, client, sample_users):
         """Test getting all users."""
-        response = client.get("/api/users/")
+        response = client.get("/api/v1/users/")
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -157,7 +157,7 @@ class TestGetUsers:
 
     def test_get_all_users_pagination(self, client, sample_users):
         """Test pagination."""
-        response = client.get("/api/users/?page=1&per_page=2")
+        response = client.get("/api/v1/users/?page=1&per_page=2")
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -169,7 +169,7 @@ class TestGetUsers:
 
     def test_get_single_user(self, client, sample_user):
         """Test getting a single user by ID."""
-        response = client.get(f"/api/users/{sample_user.id}")
+        response = client.get(f"/api/v1/users/{sample_user.id}")
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -178,7 +178,7 @@ class TestGetUsers:
 
     def test_get_user_not_found(self, client):
         """Test getting non-existent user."""
-        response = client.get("/api/users/99999")
+        response = client.get("/api/v1/users/99999")
 
         assert response.status_code == 404
         data = json.loads(response.data)
@@ -191,7 +191,7 @@ class TestUpdateUser:
     def test_update_user_success(self, client, sample_user):
         """Test successful user update."""
         response = client.put(
-            f"/api/users/{sample_user.id}",
+            f"/api/v1/users/{sample_user.id}",
             json={
                 "first_name": "Updated",
                 "bio": "Updated bio",
@@ -208,7 +208,7 @@ class TestUpdateUser:
     def test_update_user_not_found(self, client):
         """Test updating non-existent user."""
         response = client.put(
-            "/api/users/99999",
+            "/api/v1/users/99999",
             json={"first_name": "Test"},
             content_type="application/json",
         )
@@ -221,7 +221,7 @@ class TestDeleteUser:
 
     def test_soft_delete_user(self, client, sample_user, db):
         """Test soft deleting a user."""
-        response = client.delete(f"/api/users/{sample_user.id}")
+        response = client.delete(f"/api/v1/users/{sample_user.id}")
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -233,6 +233,6 @@ class TestDeleteUser:
 
     def test_delete_user_not_found(self, client):
         """Test deleting non-existent user."""
-        response = client.delete("/api/users/99999")
+        response = client.delete("/api/v1/users/99999")
 
         assert response.status_code == 404
