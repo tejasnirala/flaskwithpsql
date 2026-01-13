@@ -49,9 +49,9 @@ api_v1 = APIBlueprint(
 # Each blueprint's url_prefix gets appended to /api/v1
 # Example: users_bp_v1 has url_prefix="/users" → final URL is /api/v1/users
 
-api_v1.register_api(main_bp_v1)  # /api/v1/ and /api/v1/health
-api_v1.register_api(users_bp_v1)  # /api/v1/users/*
 api_v1.register_api(auth_bp_v1)  # /api/v1/auth/*
+api_v1.register_api(users_bp_v1)  # /api/v1/users/*
+api_v1.register_api(main_bp_v1)  # /api/v1/ and /api/v1/health
 
 
 # Export for use in app factory

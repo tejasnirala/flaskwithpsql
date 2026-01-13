@@ -146,6 +146,31 @@ class Config:
     # JSON settings
     JSON_SORT_KEYS: bool = False  # Don't sort JSON keys (faster)
 
+    # ==========================================================================
+    # SWAGGER UI SETTINGS
+    # ==========================================================================
+    # Configuration for Swagger UI display
+    # See: https://swagger.io/docs/open-source-tools/swagger-ui/usage/configuration/
+    SWAGGER_CONFIG: dict = {
+        # Layout & Expansion
+        "docExpansion": "none",  # "none", "list", or "full" - collapse all by default
+        "defaultModelsExpandDepth": 0,  # 0=collapsed, 1=expanded, -1=hidden
+        "defaultModelExpandDepth": 3,  # Depth of model expansion when clicked
+        # Display Options
+        "displayOperationId": False,  # Hide operation IDs (cleaner look)
+        "displayRequestDuration": True,  # Show request time after "Try It Out"
+        "filter": True,  # Enable search/filter box
+        "showExtensions": False,  # Hide vendor extensions
+        "showCommonExtensions": False,  # Hide common extensions
+        # Navigation & UX
+        "deepLinking": True,  # Enable deep linking (shareable URLs)
+        "persistAuthorization": True,  # Remember auth across page refreshes!
+        "tryItOutEnabled": False,  # Don't auto-enable "Try It Out"
+        # Syntax Highlighting
+        "syntaxHighlight.activate": True,  # Enable syntax highlighting
+        "syntaxHighlight.theme": "monokai",  # Theme: monokai, agate, nord, obsidian
+    }
+
     @classmethod
     def validate(cls) -> List[str]:
         """

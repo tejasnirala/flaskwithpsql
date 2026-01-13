@@ -55,10 +55,10 @@ def create_app(config_name="default"):
 
     Available Documentation URLs:
     -----------------------------
-    - /docs         → Swagger UI (interactive)
-    - /redoc        → ReDoc (clean documentation)
-    - /rapidoc      → RapiDoc (alternative UI)
-    - /openapi.json → Raw OpenAPI specification
+    - /openapi/swagger      → Swagger UI (interactive)
+    - /openapi/redoc        → ReDoc (clean documentation)
+    - /openapi/rapidoc      → RapiDoc (alternative UI)
+    - /openapi.json         → Raw OpenAPI specification
     """
     import logging
 
@@ -78,6 +78,20 @@ def create_app(config_name="default"):
     # This ensures all error responses follow the same format
     from app.utils.error_handlers import pydantic_validation_error_callback
 
+    # ==========================================================================
+    # Security Scheme for Swagger UI Authorization
+    # ==========================================================================
+    # This adds the "Authorize" button in Swagger UI where users can input
+    # their JWT Bearer token to test protected endpoints
+    jwt_security_scheme = {
+        "jwt": {
+            "type": "http",
+            "scheme": "bearer",
+            "bearerFormat": "JWT",
+            "description": "Enter your JWT access token (without 'Bearer ' prefix)",
+        }
+    }
+
     # Use OpenAPI instead of Flask
     # This is a drop-in replacement that adds OpenAPI capabilities
     app = OpenAPI(
@@ -86,9 +100,12 @@ def create_app(config_name="default"):
         # Custom validation error handling to match our standard response format
         # The callback is defined in error_handlers.py for centralization
         validation_error_callback=pydantic_validation_error_callback,
+        # Security schemes - adds "Authorize" button in Swagger UI
+        security_schemes=jwt_security_scheme,
     )
 
     # Load configuration - works exactly like Flask
+    # SWAGGER_CONFIG is included in config.py and loaded here
     app.config.from_object(config_class)
 
     # ==========================================================================
@@ -157,6 +174,13 @@ def create_app(config_name="default"):
     from app.utils.error_handlers import register_error_handlers
 
     register_error_handlers(app)
+
+    # =========================================================================
+    # Web Interface Routes (Landing Page, Health Dashboard)
+    # =========================================================================
+    from app.routes.web import web_bp
+
+    app.register_api(web_bp)
 
     # Shell context for flask shell - no changes needed
     @app.shell_context_processor

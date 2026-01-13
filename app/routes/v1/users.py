@@ -19,6 +19,7 @@ Architecture:
 import logging
 from typing import Any, Dict, List, Optional
 
+from flask_jwt_extended import jwt_required
 from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
@@ -112,7 +113,7 @@ class UserListQuery(BaseModel):
 
 @users_bp_v1.get(
     "/",
-    summary="Get All Users (v1)",
+    summary="Get All Users",
     description="Retrieves a paginated list of all users in the system.",
     responses={
         200: UsersListResponse,
@@ -156,7 +157,7 @@ def get_users(query: UserListQuery):
 
 @users_bp_v1.get(
     "/<int:user_id>",
-    summary="Get User by ID (v1)",
+    summary="Get User by ID",
     description="Retrieves a specific user by their ID.",
     responses={
         200: UserDataResponse,
@@ -188,7 +189,7 @@ def get_user(path: UserPath):
 
 @users_bp_v1.put(
     "/<int:user_id>",
-    summary="Update User (v1)",
+    summary="Update User",
     description="""
 Updates an existing user's profile.
 
@@ -200,7 +201,9 @@ At least one field must be provided.
         404: StandardErrorResponse,
         422: StandardErrorResponse,
     },
+    security=[{"jwt": []}],  # Requires JWT authentication
 )
+@jwt_required()
 def update_user(path: UserPath, body: UserUpdateSchema):
     """
     Update an existing user.
@@ -229,7 +232,7 @@ def update_user(path: UserPath, body: UserUpdateSchema):
 
 @users_bp_v1.delete(
     "/<int:user_id>",
-    summary="Delete User (v1)",
+    summary="Delete User",
     description="""
 Soft-deletes a user by setting is_deleted=True.
 
@@ -240,7 +243,9 @@ This allows for potential recovery and maintains referential integrity.
         200: MessageResponse,
         404: StandardErrorResponse,
     },
+    security=[{"jwt": []}],  # Requires JWT authentication
 )
+@jwt_required()
 def delete_user(path: UserPath):
     """
     Delete a user (soft delete).

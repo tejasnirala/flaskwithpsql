@@ -99,7 +99,7 @@ class UserDataResponse(StandardSuccessResponse):
 
 @auth_bp_v1.post(
     "/register",
-    summary="Register New User (v1)",
+    summary="Register New User",
     description="""
 Creates a new user account.
 
@@ -147,7 +147,7 @@ def register_user(body: UserCreateSchema):
 
 @auth_bp_v1.post(
     "/login",
-    summary="Login (v1)",
+    summary="Login",
     description="""
 Authenticate with email and password to receive JWT tokens.
 
@@ -201,7 +201,7 @@ def login(body: LoginRequest):
 
 @auth_bp_v1.post(
     "/logout",
-    summary="Logout (v1)",
+    summary="Logout",
     description="""
 Revoke the current access token.
 
@@ -212,6 +212,7 @@ Client should also discard the refresh token.
         200: StandardSuccessResponse,
         401: StandardErrorResponse,
     },
+    security=[{"jwt": []}],  # Requires JWT authentication
 )
 @jwt_required()
 def logout():
@@ -228,7 +229,7 @@ def logout():
 
 @auth_bp_v1.post(
     "/refresh",
-    summary="Refresh Token (v1)",
+    summary="Refresh Token",
     description="""
 Get a new access token using a valid refresh token.
 
@@ -241,6 +242,7 @@ Authorization: Bearer <refresh_token>
         200: TokenResponse,
         401: StandardErrorResponse,
     },
+    security=[{"jwt": []}],  # Requires JWT (refresh token)
 )
 @jwt_required(refresh=True)
 def refresh():
@@ -265,12 +267,13 @@ def refresh():
 
 @auth_bp_v1.get(
     "/me",
-    summary="Get Current User (v1)",
+    summary="Get Current User",
     description="Get the currently authenticated user's information.",
     responses={
         200: UserInfoResponse,
         401: StandardErrorResponse,
     },
+    security=[{"jwt": []}],  # Requires JWT authentication
 )
 @jwt_required()
 def get_me():

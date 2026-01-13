@@ -10,7 +10,7 @@ Prefix: /api/v1
 import logging
 from typing import Optional
 
-from flask import render_template
+
 from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
@@ -77,7 +77,7 @@ class HealthDataResponse(StandardSuccessResponse):
 
 @main_bp_v1.get(
     "/",
-    summary="Root Endpoint (v1)",
+    summary="Root Endpoint",
     description="Returns a welcome message and basic API information for v1.",
     responses={
         200: WelcomeDataResponse,
@@ -100,23 +100,9 @@ def index():
     )
 
 
-@main_bp_v1.get("/template")
-def test_template():
-    """
-    Test template route - demonstrates HTML templating.
-
-    Note: This route returns HTML, not JSON, so we don't define
-    response schemas for it. It won't appear in API docs.
-
-    Returns:
-        Rendered HTML template
-    """
-    return render_template("test.html")
-
-
 @main_bp_v1.get(
     "/health",
-    summary="Health Check (v1)",
+    summary="Health Check",
     description="Returns the health status of the API and database connection.",
     responses={
         200: HealthDataResponse,
