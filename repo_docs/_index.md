@@ -120,14 +120,14 @@ repo_docs/
 │   ├── 4.1_rest_api_basics.md         # REST principles recap
 │   ├── 4.2_openapi_swagger.md         # flask-openapi3 overview
 │   ├── 4.3_routes_structure.md        # How routes are organized
-│   ├── 4.4_main_routes.md             # main.py explained
-│   ├── 4.5_user_routes.md             # users.py deep dive
-│   ├── 4.6_pydantic_overview.md       # Pydantic vs Joi/Zod
-│   ├── 4.7_schemas_explained.md       # Our schemas folder
-│   ├── 4.8_validation_flow.md         # Request validation flow
-│   ├── 4.9_response_format.md         # Standardized responses
-│   ├── 4.10_error_handling.md         # Centralized error handlers
-│   └── 4.11_api_versioning.md         # ✅ COMPLETE: API versioning (URL-based)
+│   ├── 4.4_api_versioning.md          # URL-based versioning explained
+│   ├── 4.5_main_routes.md             # main.py explained
+│   ├── 4.6_user_routes.md             # users.py deep dive
+│   ├── 4.7_pydantic_overview.md       # Pydantic vs Joi/Zod
+│   ├── 4.8_schemas_explained.md       # Our schemas folder
+│   ├── 4.9_validation_flow.md         # Request validation flow
+│   ├── 4.10_response_format.md        # Standardized responses
+│   └── 4.11_error_handling.md         # Centralized error handlers
 │
 ├── 05_authentication/
 │   ├── 5.1_auth_overview.md           # Authentication vs Authorization
@@ -184,11 +184,11 @@ repo_docs/
 
 | Section               | Files | Status         | Priority    |
 | --------------------- | ----- | -------------- | ----------- |
-| 00_start_here         | 5     | ⬜ Not Started | 🔴 Critical |
-| 01_python_basics      | 8     | ⬜ Not Started | 🔴 Critical |
-| 02_flask_fundamentals | 8     | ⬜ Not Started | 🔴 Critical |
+| 00_start_here         | 5     | ✅ Complete    | 🔴 Critical |
+| 01_python_basics      | 8     | ✅ Complete    | 🔴 Critical |
+| 02_flask_fundamentals | 8     | ✅ Complete    | 🔴 Critical |
 | 03_database           | 10    | ⬜ Not Started | 🔴 Critical |
-| 04_api_design         | 11    | ⬜ Not Started | 🔴 Critical |
+| 04_api_design         | 11    | 🟨 In Progress | 🔴 Critical |
 | 05_authentication     | 9     | ⬜ Not Started | 🟡 High     |
 | 06_architecture       | 7     | ⬜ Not Started | 🟡 High     |
 | 07_devops             | 8     | ⬜ Not Started | 🟢 Medium   |
@@ -196,6 +196,7 @@ repo_docs/
 | 09_reference          | 5     | ⬜ Not Started | 🔵 Low      |
 
 **Total Files: 80 documentation files**
+**Completed: 22 files (27.5%)**
 
 ---
 
@@ -280,7 +281,8 @@ Given the volume, here's how we'll approach this:
 -   `app/__init__.py` → `02_flask_fundamentals/2.8_our_app_init.md`
 -   `config.py` → `02_flask_fundamentals/2.3_configuration.md`
 -   `app/models/user.py` → `03_database/3.5_user_model.md`
--   `app/routes/users.py` → `04_api_design/4.5_user_routes.md`
+-   `app/routes/v1/users.py` → `04_api_design/4.6_user_routes.md`
+-   `app/routes/v1/__init__.py` → `04_api_design/4.4_api_versioning.md`
 -   `app/auth/__init__.py` → `05_authentication/5.4_auth_module.md`
 -   `app/services/user_service.py` → `06_architecture/6.3_user_service.md`
 
