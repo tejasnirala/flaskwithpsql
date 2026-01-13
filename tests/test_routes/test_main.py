@@ -12,7 +12,7 @@ class TestHealthEndpoints:
 
     def test_root_endpoint(self, client):
         """Test the root endpoint returns welcome message."""
-        response = client.get("/")
+        response = client.get("/api/v1/")
 
         assert response.status_code == 200
         data = json.loads(response.data)
@@ -22,7 +22,7 @@ class TestHealthEndpoints:
 
     def test_health_endpoint(self, client):
         """Test the health check endpoint."""
-        response = client.get("/health")
+        response = client.get("/api/v1/health")
 
         assert response.status_code == 200
         data = json.loads(response.data)

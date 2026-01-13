@@ -10,7 +10,6 @@ Prefix: /api/v1
 import logging
 from typing import Optional
 
-
 from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
