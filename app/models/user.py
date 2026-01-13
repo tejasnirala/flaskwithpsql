@@ -5,7 +5,8 @@ User model representing the users table in PostgreSQL.
 Inherits from BaseModel to get common fields (id, created_at, updated_at, is_deleted).
 """
 
-from app import db
+from sqlalchemy import Boolean, Column, String, Text
+
 from app.models.base import BaseModel
 
 
@@ -28,23 +29,23 @@ class User(BaseModel):
     # ========================================================================
     # USER INFORMATION (Unique identifiers)
     # ========================================================================
-    username = db.Column(db.String(80), unique=True, nullable=False, index=True)
-    email = db.Column(db.String(120), unique=True, nullable=False, index=True)
-    password_hash = db.Column(db.String(256), nullable=False)
+    username = Column(String(100), unique=True, nullable=False, index=True)
+    email = Column(String(120), unique=True, nullable=False, index=True)
+    password_hash = Column(String(256), nullable=False)
 
     # ========================================================================
     # PROFILE INFORMATION
     # ========================================================================
-    first_name = db.Column(db.String(50), nullable=False)
-    middle_name = db.Column(db.String(50), nullable=True)
-    last_name = db.Column(db.String(50), nullable=True)
-    bio = db.Column(db.Text, nullable=True)
+    first_name = Column(String(50), nullable=False)
+    middle_name = Column(String(50), nullable=True)
+    last_name = Column(String(50), nullable=True)
+    bio = Column(Text, nullable=True)
 
     # ========================================================================
     # STATUS FLAGS
     # ========================================================================
     # Note: is_deleted is inherited from BaseModel
-    is_active = db.Column(db.Boolean, default=True)
+    is_active = Column(Boolean, default=True)
 
     # ========================================================================
     # METHODS

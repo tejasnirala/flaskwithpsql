@@ -127,7 +127,7 @@ repo_docs/
 │   ├── 4.8_validation_flow.md         # Request validation flow
 │   ├── 4.9_response_format.md         # Standardized responses
 │   ├── 4.10_error_handling.md         # Centralized error handlers
-│   └── 4.11_api_versioning.md         # Future: API versioning strategies
+│   └── 4.11_api_versioning.md         # ✅ COMPLETE: API versioning (URL-based)
 │
 ├── 05_authentication/
 │   ├── 5.1_auth_overview.md           # Authentication vs Authorization
