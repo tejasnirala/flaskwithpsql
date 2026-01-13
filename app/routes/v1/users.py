@@ -1,7 +1,10 @@
-"""User routes - CRUD operations for users.
+"""User routes - CRUD operations for users (API v1).
 
 This module uses flask-openapi3's APIBlueprint for automatic OpenAPI generation.
 Routes are thin - they handle HTTP concerns and delegate to the UserService.
+
+Version: 1
+Prefix: /api/v1/users
 
 Key Changes from Regular Flask Blueprint:
 1. Blueprint → APIBlueprint
@@ -19,14 +22,8 @@ from typing import Any, Dict, List, Optional
 from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, Field
 
-from app.schemas import UserCreateSchema, UserLoginSchema, UserResponseSchema, UserUpdateSchema
-from app.services import (
-    InvalidCredentialsError,
-    UserAlreadyExistsError,
-    UserNotFoundError,
-    UserService,
-)
-from app.utils.rate_limiter import api_limit
+from app.schemas import UserResponseSchema, UserUpdateSchema
+from app.services import UserNotFoundError, UserService
 from app.utils.responses import (
     ErrorCode,
     StandardErrorResponse,
@@ -45,16 +42,17 @@ logger = logging.getLogger(__name__)
 
 # Tag for grouping user endpoints in Swagger UI
 tag = Tag(
-    name="Users",
-    description="User management - registration, login, profile CRUD operations",
+    name="Users (v1)",
+    description="User management - CRUD operations for users - Version 1",
 )
 
-# APIBlueprint replaces Blueprint, enabling automatic OpenAPI documentation
-users_bp = APIBlueprint(
-    "users",
+# APIBlueprint with just the resource prefix
+# Version prefix (/api/v1) is added during registration in app/__init__.py
+users_bp_v1 = APIBlueprint(
+    "users_v1",  # Unique name for v1
     __name__,
-    url_prefix="/api/users",  # URL prefix is set here, not in register_api()
-    abp_tags=[tag],  # All routes in this blueprint get this tag
+    url_prefix="/users",  # Just the resource - version added at registration
+    abp_tags=[tag],
 )
 
 
@@ -108,114 +106,13 @@ class UserListQuery(BaseModel):
 
 
 # =============================================================================
-# CREATE - Register new user
-# =============================================================================
-
-
-@users_bp.post(
-    "/register",
-    summary="Register New User",
-    description="""
-Creates a new user account.
-
-**Validation Rules:**
-- Username: 3-80 characters, alphanumeric and underscore only
-- Email: Must be valid email format
-- Password: 8-128 characters, must contain uppercase, lowercase, and digit
-- First name: Required, 1-50 characters
-- Middle name: Optional, max 50 characters
-- Last name: Optional, max 50 characters
-- Bio: Optional, max 500 characters
-
-**Automatic Transformations:**
-- Username is converted to lowercase
-- Names are converted to title case
-    """,
-    responses={
-        201: UserDataResponse,
-        409: StandardErrorResponse,
-        422: StandardErrorResponse,
-    },
-)
-@api_limit
-def register_user(body: UserCreateSchema):
-    """
-    Create a new user.
-
-    Delegates to UserService for business logic.
-    """
-    try:
-        user = UserService.create_user(body)
-        response_data = UserResponseSchema.model_validate(user)
-        return success_response(
-            data=response_data.to_dict(),
-            message="User created successfully",
-            status_code=201,
-        )
-    except UserAlreadyExistsError as e:
-        return error_response(
-            code=ErrorCode.RESOURCE_ALREADY_EXISTS,
-            message=f"{e.field.title()} already exists",
-            status_code=409,
-        )
-
-
-# =============================================================================
-# READ - Login (authenticate user)
-# =============================================================================
-
-
-@users_bp.post(
-    "/login",
-    summary="User Login",
-    description="""
-Authenticates a user with email and password.
-
-**Note:** This is a simple login endpoint. In a production system,
-you would return a JWT token or session cookie here.
-    """,
-    responses={
-        200: UserDataResponse,
-        401: StandardErrorResponse,
-        404: StandardErrorResponse,
-        422: StandardErrorResponse,
-    },
-)
-def login_user(body: UserLoginSchema):
-    """
-    Login a user.
-
-    Delegates to UserService for authentication.
-    """
-    try:
-        user = UserService.authenticate(body.email, body.password)
-        response_data = UserResponseSchema.model_validate(user)
-        return success_response(
-            data=response_data.to_dict(),
-            message="User logged in successfully",
-        )
-    except UserNotFoundError:
-        return error_response(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message="User not found",
-            status_code=404,
-        )
-    except InvalidCredentialsError:
-        return error_response(
-            code=ErrorCode.INVALID_CREDENTIALS,
-            message="Invalid password",
-            status_code=401,
-        )
-
-
-# =============================================================================
 # READ - Get all users (with pagination)
 # =============================================================================
 
 
-@users_bp.get(
+@users_bp_v1.get(
     "/",
-    summary="Get All Users",
+    summary="Get All Users (v1)",
     description="Retrieves a paginated list of all users in the system.",
     responses={
         200: UsersListResponse,
@@ -247,6 +144,7 @@ def get_users(query: UserListQuery):
             "page": query.page,
             "per_page": query.per_page,
             "total_pages": total_pages,
+            "api_version": "v1",
         },
     )
 
@@ -256,9 +154,9 @@ def get_users(query: UserListQuery):
 # =============================================================================
 
 
-@users_bp.get(
+@users_bp_v1.get(
     "/<int:user_id>",
-    summary="Get User by ID",
+    summary="Get User by ID (v1)",
     description="Retrieves a specific user by their ID.",
     responses={
         200: UserDataResponse,
@@ -288,9 +186,9 @@ def get_user(path: UserPath):
 # =============================================================================
 
 
-@users_bp.put(
+@users_bp_v1.put(
     "/<int:user_id>",
-    summary="Update User",
+    summary="Update User (v1)",
     description="""
 Updates an existing user's profile.
 
@@ -329,9 +227,9 @@ def update_user(path: UserPath, body: UserUpdateSchema):
 # =============================================================================
 
 
-@users_bp.delete(
+@users_bp_v1.delete(
     "/<int:user_id>",
-    summary="Delete User",
+    summary="Delete User (v1)",
     description="""
 Soft-deletes a user by setting is_deleted=True.
 

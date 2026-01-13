@@ -1,8 +1,10 @@
-"""Main routes for the application.
+"""Main routes for API v1.
 
 These routes provide health checks and basic status endpoints.
-Using APIBlueprint from flask-openapi3 instead of regular Blueprint
-for automatic OpenAPI documentation generation.
+Using APIBlueprint from flask-openapi3 for automatic OpenAPI documentation.
+
+Version: 1
+Prefix: /api/v1
 """
 
 import logging
@@ -24,13 +26,14 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 # Tag for grouping these endpoints in Swagger UI
-tag = Tag(name="Health", description="Health check and status endpoints")
+tag = Tag(name="Health (v1)", description="Health check and status endpoints - Version 1")
 
-# APIBlueprint is a drop-in replacement for Blueprint with OpenAPI support
-main_bp = APIBlueprint(
-    "main",
+# APIBlueprint with just the resource prefix (empty for root)
+# Version prefix (/api/v1) is added during registration in app/__init__.py
+main_bp_v1 = APIBlueprint(
+    "main_v1",  # Unique name for v1
     __name__,
-    # abp_tags defines which tags apply to ALL routes in this blueprint
+    url_prefix="/",  # Root routes - version added at registration
     abp_tags=[tag],
 )
 
@@ -51,6 +54,7 @@ class WelcomeDataResponse(StandardSuccessResponse):
         )
         status: str = Field(..., description="Application status", examples=["running"])
         version: str = Field(..., description="API version", examples=["1.0.0"])
+        api_version: str = Field(..., description="API version number", examples=["v1"])
 
     data: Optional[WelcomeData] = Field(..., description="Welcome data")
 
@@ -61,6 +65,7 @@ class HealthDataResponse(StandardSuccessResponse):
     class HealthData(BaseModel):
         status: str = Field(..., description="Health status", examples=["healthy"])
         database: str = Field(..., description="Database connection status", examples=["connected"])
+        api_version: str = Field(..., description="API version", examples=["v1"])
 
     data: Optional[HealthData] = Field(..., description="Health check data")
 
@@ -70,17 +75,17 @@ class HealthDataResponse(StandardSuccessResponse):
 # =============================================================================
 
 
-@main_bp.get(
+@main_bp_v1.get(
     "/",
-    summary="Root Endpoint",
-    description="Returns a welcome message and basic API information.",
+    summary="Root Endpoint (v1)",
+    description="Returns a welcome message and basic API information for v1.",
     responses={
         200: WelcomeDataResponse,
     },
 )
 def index():
     """
-    Root endpoint - Welcome message.
+    Root endpoint for API v1 - Welcome message.
 
     Returns:
         JSON response with welcome message and API status
@@ -90,11 +95,12 @@ def index():
             "message": "Welcome to Flask with PostgreSQL!",
             "status": "running",
             "version": __version__,
+            "api_version": "v1",
         }
     )
 
 
-@main_bp.get("/template")
+@main_bp_v1.get("/template")
 def test_template():
     """
     Test template route - demonstrates HTML templating.
@@ -108,9 +114,9 @@ def test_template():
     return render_template("test.html")
 
 
-@main_bp.get(
+@main_bp_v1.get(
     "/health",
-    summary="Health Check",
+    summary="Health Check (v1)",
     description="Returns the health status of the API and database connection.",
     responses={
         200: HealthDataResponse,
@@ -118,7 +124,7 @@ def test_template():
 )
 def health():
     """
-    Health check endpoint.
+    Health check endpoint for API v1.
 
     Actually verifies database connectivity by executing a simple query.
 
@@ -139,5 +145,6 @@ def health():
         data={
             "status": "healthy" if db_status == "connected" else "degraded",
             "database": db_status,
+            "api_version": "v1",
         }
     )

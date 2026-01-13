@@ -133,15 +133,25 @@ def create_app(config_name="default"):
         max_age=cors_config.CORS_MAX_AGE,
     )
 
-    # Register APIBlueprints using register_api() instead of register_blueprint()
-    # This is CRITICAL - register_api() makes routes appear in OpenAPI spec
-    from app.auth.routes import auth_bp
-    from app.routes.main import main_bp
-    from app.routes.users import users_bp
+    # =========================================================================
+    # Register Versioned API Blueprints
+    # =========================================================================
+    # API Versioning Strategy: URL-based versioning using parent blueprints
+    #
+    # The version prefix (/api/v1) is defined in the parent blueprint (api_v1).
+    # All child blueprints (users, auth, main) are nested under it.
+    #
+    # This is similar to Express.js nested routers:
+    #   const v1Router = express.Router();
+    #   v1Router.use('/users', usersRouter);
+    #   v1Router.use('/auth', authRouter);
+    #   app.use('/api/v1', v1Router);  // Version defined ONCE!
 
-    app.register_api(main_bp)
-    app.register_api(users_bp)  # url_prefix is set in APIBlueprint constructor
-    app.register_api(auth_bp)  # Authentication routes
+    from app.routes.v1 import api_v1
+
+    # Register ALL v1 routes with a single call!
+    # This includes: /api/v1/users/*, /api/v1/auth/*, /api/v1/health, etc.
+    app.register_api(api_v1)
 
     # Register global error handlers for consistent error responses
     from app.utils.error_handlers import register_error_handlers

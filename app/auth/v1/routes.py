@@ -1,11 +1,15 @@
 """
-Authentication Routes - Login, Logout, Token Refresh.
+Authentication Routes - Login, Logout, Token Refresh (API v1).
 
 These routes handle JWT-based authentication:
-- POST /auth/login     - Get tokens with email/password
-- POST /auth/logout    - Revoke current token
-- POST /auth/refresh   - Get new access token using refresh token
-- GET  /auth/me        - Get current user info
+- POST /api/v1/auth/register  - Create new user account
+- POST /api/v1/auth/login     - Get tokens with email/password
+- POST /api/v1/auth/logout    - Revoke current token
+- POST /api/v1/auth/refresh   - Get new access token using refresh token
+- GET  /api/v1/auth/me        - Get current user info
+
+Version: 1
+Prefix: /api/v1/auth
 """
 
 import logging
@@ -16,8 +20,14 @@ from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, EmailStr, Field
 
 from app.auth import create_tokens, get_current_user, revoke_token
-from app.schemas import UserResponseSchema
-from app.services import InvalidCredentialsError, UserNotFoundError, UserService
+from app.schemas import UserCreateSchema, UserResponseSchema
+from app.services import (
+    InvalidCredentialsError,
+    UserAlreadyExistsError,
+    UserNotFoundError,
+    UserService,
+)
+from app.utils.rate_limiter import api_limit
 from app.utils.responses import (
     ErrorCode,
     StandardErrorResponse,
@@ -32,12 +42,14 @@ logger = logging.getLogger(__name__)
 # Blueprint Setup
 # =============================================================================
 
-tag = Tag(name="Authentication", description="JWT authentication endpoints")
+tag = Tag(name="Authentication (v1)", description="JWT authentication endpoints - Version 1")
 
-auth_bp = APIBlueprint(
-    "auth",
+# APIBlueprint with just the resource prefix
+# Version prefix (/api/v1) is added during registration in app/__init__.py
+auth_bp_v1 = APIBlueprint(
+    "auth_v1",  # Unique name for v1
     __name__,
-    url_prefix="/api/auth",
+    url_prefix="/auth",  # Just the resource - version added at registration
     abp_tags=[tag],
 )
 
@@ -72,14 +84,70 @@ class UserInfoResponse(StandardSuccessResponse):
     data: Optional[Dict[str, Any]] = Field(..., description="User information")
 
 
+class UserDataResponse(StandardSuccessResponse):
+    """Single user data response - extends standard success response."""
+
+    data: Optional[Dict[str, Any]] = Field(
+        ..., description="User data object containing user information"
+    )
+
+
 # =============================================================================
 # Routes
 # =============================================================================
 
 
-@auth_bp.post(
+@auth_bp_v1.post(
+    "/register",
+    summary="Register New User (v1)",
+    description="""
+Creates a new user account.
+
+**Validation Rules:**
+- Username: 3-80 characters, alphanumeric and underscore only
+- Email: Must be valid email format
+- Password: 8-128 characters, must contain uppercase, lowercase, and digit
+- First name: Required, 1-50 characters
+- Middle name: Optional, max 50 characters
+- Last name: Optional, max 50 characters
+- Bio: Optional, max 500 characters
+
+**Automatic Transformations:**
+- Username is converted to lowercase
+- Names are converted to title case
+    """,
+    responses={
+        201: UserDataResponse,
+        409: StandardErrorResponse,
+        422: StandardErrorResponse,
+    },
+)
+@api_limit
+def register_user(body: UserCreateSchema):
+    """
+    Create a new user.
+
+    Delegates to UserService for business logic.
+    """
+    try:
+        user = UserService.create_user(body)
+        response_data = UserResponseSchema.model_validate(user)
+        return success_response(
+            data=response_data.to_dict(),
+            message="User created successfully",
+            status_code=201,
+        )
+    except UserAlreadyExistsError as e:
+        return error_response(
+            code=ErrorCode.RESOURCE_ALREADY_EXISTS,
+            message=f"{e.field.title()} already exists",
+            status_code=409,
+        )
+
+
+@auth_bp_v1.post(
     "/login",
-    summary="Login",
+    summary="Login (v1)",
     description="""
 Authenticate with email and password to receive JWT tokens.
 
@@ -131,9 +199,9 @@ def login(body: LoginRequest):
         )
 
 
-@auth_bp.post(
+@auth_bp_v1.post(
     "/logout",
-    summary="Logout",
+    summary="Logout (v1)",
     description="""
 Revoke the current access token.
 
@@ -158,9 +226,9 @@ def logout():
     return success_response(message="Logout successful")
 
 
-@auth_bp.post(
+@auth_bp_v1.post(
     "/refresh",
-    summary="Refresh Token",
+    summary="Refresh Token (v1)",
     description="""
 Get a new access token using a valid refresh token.
 
@@ -195,9 +263,9 @@ def refresh():
     )
 
 
-@auth_bp.get(
+@auth_bp_v1.get(
     "/me",
-    summary="Get Current User",
+    summary="Get Current User (v1)",
     description="Get the currently authenticated user's information.",
     responses={
         200: UserInfoResponse,
