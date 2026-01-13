@@ -108,7 +108,7 @@ class TestUserLogin:
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data["success"] is True
-        assert data["data"]["username"] == "testuser"
+        assert data["data"]["user"]["username"] == "testuser"
 
     def test_login_invalid_password(self, client, sample_user):
         """Test login with wrong password."""
