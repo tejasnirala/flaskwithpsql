@@ -102,7 +102,8 @@ repo_docs/
 │   ├── 2.5_request_lifecycle.md       # What happens on each request
 │   ├── 2.6_flask_extensions.md        # How extensions work
 │   ├── 2.7_application_context.md     # app context vs request context
-│   └── 2.8_our_app_init.md            # Line-by-line app/__init__.py
+│   ├── 2.8_our_app_init.md            # Line-by-line app/__init__.py
+│   └── 2.9_cors.md                    # CORS configuration and troubleshooting
 │
 ├── 03_database/
 │   ├── 3.1_sqlalchemy_overview.md     # What is SQLAlchemy, ORM vs raw SQL
@@ -114,7 +115,8 @@ repo_docs/
 │   ├── 3.7_querying_data.md           # CRUD operations with SQLAlchemy
 │   ├── 3.8_migrations_overview.md     # What and why migrations
 │   ├── 3.9_flask_migrate.md           # Using Flask-Migrate
-│   └── 3.10_db_manage_script.md       # Our db_manage.py explained
+│   ├── 3.10_db_manage_script.md       # Our db_manage.py explained
+│   └── 3.11_database_errors.md        # SQLAlchemy exception handling
 │
 ├── 04_api_design/
 │   ├── 4.1_rest_api_basics.md         # REST principles recap
@@ -132,13 +134,11 @@ repo_docs/
 ├── 05_authentication/
 │   ├── 5.1_auth_overview.md           # Authentication vs Authorization
 │   ├── 5.2_jwt_explained.md           # How JWT works
-│   ├── 5.3_flask_jwt_extended.md      # The library we use
-│   ├── 5.4_auth_module.md             # app/auth/__init__.py explained
-│   ├── 5.5_auth_routes.md             # Login, logout, refresh endpoints
-│   ├── 5.6_protecting_routes.md       # Using @jwt_required
-│   ├── 5.7_token_lifecycle.md         # Access, refresh, blacklist
-│   ├── 5.8_password_security.md       # Hashing, verification
-│   └── 5.9_rate_limiting.md           # Flask-Limiter explained
+│   ├── 5.3_flask_jwt_extended.md      # Library setup and configuration
+│   ├── 5.4_auth_routes.md             # Login, logout, refresh, me endpoints
+│   ├── 5.5_protecting_routes.md       # Using @jwt_required()
+│   ├── 5.6_token_lifecycle.md         # Access, refresh, blacklist, rotation
+│   └── 5.7_password_security.md       # PBKDF2 hashing, verification
 │
 ├── 06_architecture/
 │   ├── 6.1_architecture_overview.md   # Clean architecture principles
@@ -186,17 +186,17 @@ repo_docs/
 | --------------------- | ----- | -------------- | ----------- |
 | 00_start_here         | 5     | ✅ Complete    | 🔴 Critical |
 | 01_python_basics      | 8     | ✅ Complete    | 🔴 Critical |
-| 02_flask_fundamentals | 8     | ✅ Complete    | 🔴 Critical |
-| 03_database           | 10    | ⬜ Not Started | 🔴 Critical |
-| 04_api_design         | 11    | 🟨 In Progress | 🔴 Critical |
-| 05_authentication     | 9     | ⬜ Not Started | 🟡 High     |
+| 02_flask_fundamentals | 9     | ✅ Complete    | 🔴 Critical |
+| 03_database           | 11    | ✅ Complete    | 🔴 Critical |
+| 04_api_design         | 11    | ✅ Complete    | 🔴 Critical |
+| 05_authentication     | 7     | ✅ Complete    | 🟡 High     |
 | 06_architecture       | 7     | ⬜ Not Started | 🟡 High     |
 | 07_devops             | 8     | ⬜ Not Started | 🟢 Medium   |
 | 08_testing            | 9     | ⬜ Not Started | 🟢 Medium   |
 | 09_reference          | 5     | ⬜ Not Started | 🔵 Low      |
 
 **Total Files: 80 documentation files**
-**Completed: 22 files (27.5%)**
+**Completed: 52 files (65%)**
 
 ---
 
