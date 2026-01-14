@@ -10,6 +10,7 @@ const v1Router = express.Router();
 v1Router.use('/', mainRouter);      // Health check routes
 v1Router.use('/users', usersRouter);
 v1Router.use('/auth', authRouter);
+v1Router.use('/admin', adminRouter); // Admin routes for RBAC
 app.use('/api/v1', v1Router);       // Version defined ONCE!
 ```
 
@@ -28,6 +29,7 @@ Benefits:
 from flask_openapi3 import APIBlueprint
 
 from app.auth.v1.routes import auth_bp_v1
+from app.routes.v1.admin import admin_bp
 from app.routes.v1.main import main_bp_v1
 from app.routes.v1.users import users_bp_v1
 
@@ -52,6 +54,7 @@ api_v1 = APIBlueprint(
 api_v1.register_api(auth_bp_v1)  # /api/v1/auth/*
 api_v1.register_api(users_bp_v1)  # /api/v1/users/*
 api_v1.register_api(main_bp_v1)  # /api/v1/ and /api/v1/health
+api_v1.register_api(admin_bp)  # /api/v1/admin/* (RBAC management)
 
 
 # Export for use in app factory

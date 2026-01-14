@@ -10,7 +10,8 @@ Directory Structure:
     ├── base.py              # Base schema with common configuration
     ├── user.py              # User-related validation schemas
     ├── validators.py        # Shared validators (DRY)
-    └── utils.py             # Validation utility functions
+    ├── utils.py             # Validation utility functions
+    └── rbac.py              # RBAC-related schemas (roles, permissions)
 
 Usage:
     from app.schemas.user import UserCreateSchema, UserLoginSchema
@@ -30,6 +31,21 @@ Usage:
 
 # Import all schemas for easy access
 from app.schemas.base import BaseSchema
+from app.schemas.rbac import (
+    DirectPermissionGrantSchema,
+    DirectPermissionRevokeSchema,
+    PermissionListQuery,
+    PermissionResponseSchema,
+    RoleAssignSchema,
+    RoleCreateSchema,
+    RoleListQuery,
+    RolePath,
+    RoleResponseSchema,
+    RoleRevokeSchema,
+    RoleUpdateSchema,
+    UserPermissionsResponseSchema,
+    UserRolePath,
+)
 from app.schemas.user import UserCreateSchema, UserLoginSchema, UserResponseSchema, UserUpdateSchema
 from app.schemas.utils import format_validation_errors, validate_request, validate_with_schema
 from app.schemas.validators import normalize_name, normalize_username, validate_password_strength
@@ -42,6 +58,20 @@ __all__ = [
     "UserLoginSchema",
     "UserUpdateSchema",
     "UserResponseSchema",
+    # RBAC schemas
+    "RoleCreateSchema",
+    "RoleUpdateSchema",
+    "RoleResponseSchema",
+    "RoleListQuery",
+    "RolePath",
+    "RoleAssignSchema",
+    "RoleRevokeSchema",
+    "PermissionResponseSchema",
+    "PermissionListQuery",
+    "DirectPermissionGrantSchema",
+    "DirectPermissionRevokeSchema",
+    "UserPermissionsResponseSchema",
+    "UserRolePath",
     # Utilities
     "validate_request",
     "validate_with_schema",

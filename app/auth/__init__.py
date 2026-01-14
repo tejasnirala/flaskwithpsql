@@ -35,7 +35,6 @@ Usage:
 
 import logging
 from datetime import timedelta
-from functools import wraps
 from typing import Dict, Optional
 
 from flask import Flask
@@ -46,7 +45,6 @@ from flask_jwt_extended import (
     get_jwt_identity,
 )
 from flask_jwt_extended import jwt_required as _jwt_required
-from flask_jwt_extended import verify_jwt_in_request
 
 from app.models.user import User
 from app.utils.responses import ErrorCode, error_response
@@ -245,35 +243,20 @@ def admin_required():
     """
     Decorator for routes that require admin privileges.
 
+    This is now properly implemented using the RBAC system.
+    Requires user to have 'admin' or 'super_admin' role.
+
     Usage:
         @app.route("/admin/users")
         @admin_required()
         def admin_users():
             ...
 
-    Note: This is a placeholder. Implement proper role checking.
+    Note: For more granular control, use:
+        - @permission_required("users:delete") for specific permissions
+        - @role_required("moderator") for specific roles
     """
+    # Import here to avoid circular imports
+    from app.rbac.decorators import role_required
 
-    def decorator(fn):
-        @wraps(fn)
-        def wrapper(*args, **kwargs):
-            verify_jwt_in_request()
-            user = get_current_user()
-            if not user:
-                return error_response(
-                    code=ErrorCode.UNAUTHORIZED,
-                    message="Authentication required",
-                    status_code=401,
-                )
-            # TODO: Add proper role checking
-            # if not user.is_admin:
-            #     return error_response(
-            #         code=ErrorCode.FORBIDDEN,
-            #         message="Admin privileges required",
-            #         status_code=403,
-            #     )
-            return fn(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
+    return role_required("admin", "super_admin", message="Admin privileges required")

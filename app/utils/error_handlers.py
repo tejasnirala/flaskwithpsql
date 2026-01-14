@@ -91,6 +91,16 @@ from sqlalchemy.exc import ProgrammingError  # SQL syntax errors, missing tables
 from sqlalchemy.exc import SQLAlchemyError  # Base class for all SQLAlchemy exceptions
 from werkzeug.exceptions import HTTPException
 
+# RBAC exception imports for access control error handling
+from app.rbac.exceptions import (
+    DirectPermissionError,
+    PermissionDeniedError,
+    PermissionNotFoundError,
+    RBACError,
+    RoleAssignmentError,
+    RoleNotFoundError,
+    SystemRoleError,
+)
 from app.utils.responses import ErrorCode, error_response
 
 # Configure logging for error handlers
@@ -459,6 +469,182 @@ def register_error_handlers(app: Flask) -> None:
             message="Validation failed",
             details=details,
             status_code=422,
+        )
+
+    # =========================================================================
+    # RBAC Error Handlers
+    # =========================================================================
+    # These handlers catch RBAC-specific exceptions and return appropriate
+    # HTTP status codes with user-friendly messages.
+    # =========================================================================
+
+    @app.errorhandler(PermissionDeniedError)
+    def handle_permission_denied(error: PermissionDeniedError):
+        """
+        Handle permission denied errors from RBAC checks.
+
+        Triggered when:
+        - User lacks required permission for an operation
+        - @permission_required decorator check fails
+        """
+        logger.warning(
+            f"Permission denied: {error.message}",
+            extra={
+                "error_type": "PermissionDeniedError",
+                "required_permissions": error.required_permissions,
+            },
+        )
+
+        return error_response(
+            code=ErrorCode.FORBIDDEN,
+            message=error.message,
+            details=(
+                {"required_permissions": error.required_permissions}
+                if error.required_permissions
+                else None
+            ),
+            status_code=403,
+        )
+
+    @app.errorhandler(RoleNotFoundError)
+    def handle_role_not_found(error: RoleNotFoundError):
+        """
+        Handle role not found errors.
+
+        Triggered when:
+        - Requested role doesn't exist
+        - Role lookup fails
+        """
+        logger.info(
+            f"Role not found: {error.message}",
+            extra={
+                "error_type": "RoleNotFoundError",
+                "role_name": error.role_name,
+                "role_id": error.role_id,
+            },
+        )
+
+        return error_response(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=error.message,
+            status_code=404,
+        )
+
+    @app.errorhandler(PermissionNotFoundError)
+    def handle_permission_not_found(error: PermissionNotFoundError):
+        """
+        Handle permission not found errors.
+
+        Triggered when:
+        - Requested permission doesn't exist
+        - Permission lookup fails
+        """
+        logger.info(
+            f"Permission not found: {error.message}",
+            extra={
+                "error_type": "PermissionNotFoundError",
+                "permission_name": error.permission_name,
+            },
+        )
+
+        return error_response(
+            code=ErrorCode.RESOURCE_NOT_FOUND,
+            message=error.message,
+            status_code=404,
+        )
+
+    @app.errorhandler(RoleAssignmentError)
+    def handle_role_assignment_error(error: RoleAssignmentError):
+        """
+        Handle role assignment/revocation errors.
+
+        Triggered when:
+        - User already has the role being assigned
+        - User doesn't have the role being revoked
+        - Role name already exists (when creating)
+        """
+        logger.warning(
+            f"Role assignment error: {error.message}",
+            extra={
+                "error_type": "RoleAssignmentError",
+                "user_id": error.user_id,
+                "role_name": error.role_name,
+            },
+        )
+
+        return error_response(
+            code=ErrorCode.BAD_REQUEST,
+            message=error.message,
+            status_code=400,
+        )
+
+    @app.errorhandler(SystemRoleError)
+    def handle_system_role_error(error: SystemRoleError):
+        """
+        Handle system role protection errors.
+
+        Triggered when:
+        - Attempting to delete a system role
+        - Attempting to modify protected system role
+        """
+        logger.warning(
+            f"System role error: {error.message}",
+            extra={
+                "error_type": "SystemRoleError",
+                "role_name": error.role_name,
+            },
+        )
+
+        return error_response(
+            code=ErrorCode.FORBIDDEN,
+            message=error.message,
+            status_code=403,
+        )
+
+    @app.errorhandler(DirectPermissionError)
+    def handle_direct_permission_error(error: DirectPermissionError):
+        """
+        Handle direct permission assignment errors.
+
+        Triggered when:
+        - User already has the direct permission
+        - User doesn't have the direct permission being revoked
+        """
+        logger.warning(
+            f"Direct permission error: {error.message}",
+            extra={
+                "error_type": "DirectPermissionError",
+                "user_id": error.user_id,
+                "permission_name": error.permission_name,
+            },
+        )
+
+        return error_response(
+            code=ErrorCode.BAD_REQUEST,
+            message=error.message,
+            status_code=400,
+        )
+
+    @app.errorhandler(RBACError)
+    def handle_generic_rbac_error(error: RBACError):
+        """
+        Catch-all for any RBAC errors not handled above.
+
+        This ensures no raw RBAC errors ever reach the client.
+        More specific handlers above take precedence.
+        """
+        logger.error(
+            f"Unhandled RBAC Error: {error.message}",
+            extra={
+                "error_type": type(error).__name__,
+                "error_code": error.code,
+            },
+        )
+
+        return error_response(
+            code=ErrorCode.INTERNAL_ERROR,
+            message="An access control error occurred. Please try again later.",
+            status_code=500,
         )
 
     # =========================================================================

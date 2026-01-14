@@ -346,9 +346,102 @@ def setup_database():
     return True
 
 
+def seed_rbac():
+    """Seed RBAC permissions and roles.
+
+    This creates all permissions from the registry and the default roles.
+    Safe to run multiple times - existing data is skipped.
+    """
+    from app import create_app
+    from app.rbac.services import RBACService
+
+    app = create_app("development")
+
+    with app.app_context():
+        print("\n🔐 Seeding RBAC data...")
+
+        # Seed permissions and roles
+        results = RBACService.seed_all()
+
+        print("\n📝 Permissions:")
+        print(f"   Created: {results['permissions']['created']}")
+        print(f"   Skipped: {results['permissions']['skipped']}")
+
+        print("\n�� Roles:")
+        print(f"   Created: {results['roles']['created']}")
+        print(f"   Skipped: {results['roles']['skipped']}")
+
+        print("\n✅ RBAC seeding complete!")
+
+    return True
+
+
+def assign_admin_role(username: str = None):
+    """Assign super_admin role to a user.
+
+    Usage: python db_manage.py assign-admin <username>
+    """
+    if not username:
+        print("❌ Please provide a username.")
+        print("Usage: python db_manage.py assign-admin <username>")
+        return False
+
+    from app import create_app
+    from app.models import User
+    from app.rbac.services import RBACService
+
+    app = create_app("development")
+
+    with app.app_context():
+        # Find user
+        user = User.query.filter_by(username=username, is_deleted=False).first()
+        if not user:
+            print(f"❌ User '{username}' not found.")
+            return False
+
+        try:
+            RBACService.assign_role_to_user(user, "super_admin")
+            print(f"✅ Assigned 'super_admin' role to user '{username}'")
+        except Exception as e:
+            if "already has role" in str(e):
+                print(f"⚠️  User '{username}' already has 'super_admin' role.")
+            else:
+                print(f"❌ Error: {e}")
+                return False
+
+    return True
+
+
 def show_help():
     """Show help message."""
-    print(__doc__)
+    help_text = """
+Database management script.
+
+This script provides commands for managing the database:
+- init:         Initialize migrations folder (first time setup)
+- migrate:      Create a new migration based on model changes
+- upgrade:      Apply pending migrations to the database
+- reset:        Drop all tables and recreate (DANGEROUS - dev only)
+- reset-schema: Drop and recreate a specific schema (DANGEROUS - dev only)
+- reset-table:  Drop and recreate a specific table (DANGEROUS - dev only)
+- seed:         Populate database with sample users
+- seed-rbac:    Seed RBAC permissions and roles
+- assign-admin: Assign super_admin role to a user
+- setup:        Combined: init + migrate + upgrade
+
+Usage:
+    python db_manage.py init
+    python db_manage.py migrate "Add user table"
+    python db_manage.py upgrade
+    python db_manage.py reset
+    python db_manage.py reset-schema <schema_name>
+    python db_manage.py reset-table <table_name>
+    python db_manage.py seed
+    python db_manage.py seed-rbac
+    python db_manage.py assign-admin <username>
+    python db_manage.py setup
+"""
+    print(help_text)
 
 
 def main():
@@ -372,6 +465,8 @@ def main():
         "reset-schema": lambda: reset_schema(sys.argv[2] if len(sys.argv) > 2 else ""),
         "reset-table": lambda: reset_table(sys.argv[2] if len(sys.argv) > 2 else ""),
         "seed": seed_database,
+        "seed-rbac": seed_rbac,
+        "assign-admin": lambda: assign_admin_role(sys.argv[2] if len(sys.argv) > 2 else None),
         "setup": setup_database,
         "help": show_help,
         "-h": show_help,
