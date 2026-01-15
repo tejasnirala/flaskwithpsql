@@ -10,6 +10,10 @@ These routes handle JWT-based authentication:
 
 Version: 1
 Prefix: /api/v1/auth
+
+Note:
+    This file was moved from app/auth/v1/routes.py to app/routes/v1/auth.py
+    for consistent project structure. All routes should live in app/routes/.
 """
 
 import logging
@@ -40,7 +44,7 @@ logger = logging.getLogger(__name__)
 tag = Tag(name="Authentication (v1)", description="JWT authentication endpoints - Version 1")
 
 # APIBlueprint with just the resource prefix
-# Version prefix (/api/v1) is added during registration in app/__init__.py
+# Version prefix (/api/v1) is added during registration in app/routes/v1/__init__.py
 auth_bp_v1 = APIBlueprint(
     "auth_v1",  # Unique name for v1
     __name__,

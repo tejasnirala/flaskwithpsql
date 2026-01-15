@@ -210,6 +210,7 @@ class DevelopmentConfig(Config):
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:8080",
+        *[cors.strip() for cors in os.environ.get("CORS_ORIGINS", "").split(",") if cors.strip()],
     ]
 
     CORS_CREDENTIALS: bool = True

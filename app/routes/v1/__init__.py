@@ -28,8 +28,8 @@ Benefits:
 
 from flask_openapi3 import APIBlueprint
 
-from app.auth.v1.routes import auth_bp_v1
 from app.routes.v1.admin import admin_bp
+from app.routes.v1.auth import auth_bp_v1
 from app.routes.v1.main import main_bp_v1
 from app.routes.v1.users import users_bp_v1
 
