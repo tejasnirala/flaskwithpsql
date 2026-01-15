@@ -33,24 +33,101 @@ docker compose up
 
 ### Option 2: Local Development
 
+### 🍎 macOS
+
 ```bash
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate  # or `venv\Scripts\activate` on Windows
+# Prerequisites
+brew install python@3.13 postgresql@16 git
+brew services start postgresql@16
 
-# Install dependencies
+# Setup
+git clone https://github.com/tejasnirala/flaskwithpsql && cd flaskwithpsql
+python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
-
-# Set up environment
-cp .env.example .env
-# Edit .env with your database credentials
-
-# Initialize database
+createdb flaskwithpsql
+cp .env.example .env  # Edit with your settings
 python db_manage.py setup
+python scripts/setup_hooks.py
 
-# Run the application
+# Run
 python run.py
 ```
+
+### 🐧 Linux
+
+```bash
+# Prerequisites (Ubuntu/Debian)
+sudo apt install python3 python3-venv python3-pip postgresql git
+sudo systemctl start postgresql
+sudo -u postgres psql -c "CREATE DATABASE flaskwithpsql;"
+
+# Setup
+git clone https://github.com/tejasnirala/flaskwithpsql && cd flaskwithpsql
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env  # Edit: DATABASE_URL=postgresql://postgres:pass@localhost/flaskwithpsql
+python db_manage.py setup
+python scripts/setup_hooks.py
+
+# Run
+python run.py
+```
+
+### 🪟 Windows
+
+> 📖 Detailed guide: [docs/WINDOWS_SETUP_GUIDE.md](docs/WINDOWS_SETUP_GUIDE.md)
+
+```powershell
+# Prerequisites: Install Python 3.9+, PostgreSQL 13+, Git
+# ⚠️ Check "Add python.exe to PATH" during Python install
+
+# Setup
+git clone https://github.com/tejasnirala/flaskwithpsql
+cd flaskwithpsql
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+psql -U postgres -c "CREATE DATABASE flaskwithpsql;"
+copy .env.example .env  # Edit: DATABASE_URL with your postgres password
+python db_manage.py setup
+python scripts/setup_hooks.py
+
+# Run
+python run.py
+```
+
+---
+
+## Commands
+
+```bash
+# Development
+python run.py                    # Start server
+make run                         # Same, via Makefile
+
+# Testing
+pytest                           # Run tests
+pytest --cov=app                 # With coverage
+
+# Code Quality
+python scripts/setup_hooks.py    # Setup git hooks
+pre-commit run --all-files       # Run all checks
+make format                      # Format code
+make lint                        # Lint code
+
+# Database
+python db_manage.py setup        # Full setup
+python db_manage.py migrate      # Create migration
+python db_manage.py upgrade      # Apply migrations
+python db_manage.py reset        # Reset database
+
+# Docker
+docker compose up                # Start services
+docker compose down              # Stop services
+docker compose exec web pytest   # Run tests in container
+```
+
+---
 
 ## 📁 Project Structure
 

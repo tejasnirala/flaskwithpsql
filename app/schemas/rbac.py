@@ -18,7 +18,7 @@ Naming Convention:
 
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # =============================================================================
 # PERMISSION SCHEMAS
@@ -34,8 +34,7 @@ class PermissionResponseSchema(BaseModel):
     action: str = Field(..., description="Action part (e.g., 'delete')")
     description: Optional[str] = Field(None, description="Permission description")
 
-    class Config:
-        from_attributes = True  # Enable ORM mode for SQLAlchemy models
+    model_config = ConfigDict(from_attributes=True)  # Enable ORM mode for SQLAlchemy models
 
 
 class PermissionListQuery(BaseModel):
@@ -130,8 +129,7 @@ class RoleResponseSchema(BaseModel):
     parent_role_name: Optional[str] = Field(None, description="Parent role name")
     permissions: Optional[List[str]] = Field(None, description="List of permission names")
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class RoleListQuery(BaseModel):

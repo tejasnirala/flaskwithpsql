@@ -1,0 +1,60 @@
+# =============================================================================
+# Commit Message Validation Workflow
+# =============================================================================
+# This workflow validates commit messages follow the Conventional Commits format
+# It acts as a safety net in case local pre-commit hooks didn't run
+# =============================================================================
+
+name: Commit Message Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  validate-commits:
+    name: Validate Commit Messages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all commits for PR validation
+
+      - name: Validate commit messages
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: .commitlintrc.json
+          failOnWarnings: false
+          helpURL: https://www.conventionalcommits.org/
+
+  # ===========================================================================
+  # Block direct pushes to main (for PRs only)
+  # ===========================================================================
+  branch-protection:
+    name: Branch Protection Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Check for direct push to main
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          echo "⚠️  Direct push to main detected!"
+          echo "Branch: $GITHUB_REF"
+          echo "By: $GITHUB_ACTOR"
+          echo ""
+          echo "For better code quality, please:"
+          echo "  1. Create a feature branch"
+          echo "  2. Make your changes there"
+          echo "  3. Create a Pull Request"
+          echo ""
+          echo "This warning is logged. Consider enabling branch protection rules."
+          # Not failing the workflow - just warning
+          # To enforce, uncomment: exit 1

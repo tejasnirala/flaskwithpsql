@@ -13,7 +13,7 @@
 .PHONY: help install run test lint format type-check security clean \
         docker-up docker-down docker-build docker-logs docker-shell \
         db-init db-migrate db-upgrade db-seed db-reset \
-        pre-commit coverage docs
+        pre-commit coverage docs setup-hooks
 
 # Default target
 help:
@@ -68,8 +68,12 @@ install-dev:
 	@echo "🔧 Installing development dependencies..."
 	pip install -r requirements.txt
 	pip install black isort flake8 mypy bandit pytest pytest-cov pre-commit
-	pre-commit install
+	python scripts/setup_hooks.py
 	@echo "✅ Development environment ready!"
+
+setup-hooks:
+	@echo "🔧 Setting up Git hooks (cross-platform)..."
+	python scripts/setup_hooks.py
 
 run:
 	@echo "🚀 Starting development server..."
