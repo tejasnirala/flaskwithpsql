@@ -21,13 +21,8 @@ from pydantic import BaseModel, EmailStr, Field
 
 from app.auth import create_tokens, get_current_user, revoke_token
 from app.schemas import UserCreateSchema, UserResponseSchema
-from app.services import (
-    InvalidCredentialsError,
-    UserAlreadyExistsError,
-    UserNotFoundError,
-    UserService,
-)
-from app.utils.rate_limiter import api_limit
+from app.services import InvalidCredentialsError, UserAlreadyExistsError, UserService
+from app.utils.rate_limiter import api_limit, auth_limit
 from app.utils.responses import (
     ErrorCode,
     StandardErrorResponse,
@@ -160,16 +155,21 @@ Include the access_token in the Authorization header for protected routes:
 ```
 Authorization: Bearer <access_token>
 ```
+
+**Rate Limit:** 5 requests per minute (to prevent brute-force attacks)
     """,
     responses={
         200: TokenResponse,
         401: StandardErrorResponse,
-        404: StandardErrorResponse,
+        429: StandardErrorResponse,
     },
 )
+@auth_limit
 def login(body: LoginRequest):
     """
     Login and get JWT tokens.
+
+    Rate limited to prevent brute-force attacks.
     """
     try:
         user = UserService.authenticate(body.email, body.password)
@@ -185,16 +185,12 @@ def login(body: LoginRequest):
             },
             message="Login successful",
         )
-    except UserNotFoundError:
-        return error_response(
-            code=ErrorCode.RESOURCE_NOT_FOUND,
-            message="User not found",
-            status_code=404,
-        )
     except InvalidCredentialsError:
+        # Security: Same error for user not found AND wrong password
+        # prevents email enumeration
         return error_response(
             code=ErrorCode.INVALID_CREDENTIALS,
-            message="Invalid password",
+            message="Invalid email or password",
             status_code=401,
         )
 

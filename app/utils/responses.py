@@ -61,7 +61,7 @@ return success_response(
 """
 
 from enum import Enum
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from flask import Response, jsonify
 from pydantic import BaseModel, ConfigDict, Field
@@ -214,7 +214,7 @@ def success_response(
     message: Optional[str] = None,
     meta: Optional[Dict[str, Any]] = None,
     status_code: int = 200,
-) -> tuple[Response, int]:
+) -> Tuple[Response, int]:
     """
     Create a standardized success response.
 
@@ -327,7 +327,7 @@ def error_response(
     details: Optional[Dict[str, Any]] = None,
     meta: Optional[Dict[str, Any]] = None,
     status_code: int = 400,
-) -> tuple[Response, int]:
+) -> Tuple[Response, int]:
     """
     Create a standardized error response.
 
@@ -483,7 +483,7 @@ class UsersListSuccessResponse(StandardSuccessResponse):
 
 def validation_error_response(
     errors: List[Dict[str, str]], message: str = "Validation failed"
-) -> tuple[Response, int]:
+) -> Tuple[Response, int]:
     """
     Create a validation error response from a list of field errors.
 

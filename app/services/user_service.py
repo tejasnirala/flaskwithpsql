@@ -244,19 +244,23 @@ class UserService:
             The authenticated User object
 
         Raises:
-            UserNotFoundError: If user with email not found
-            InvalidCredentialsError: If password is incorrect
+            InvalidCredentialsError: If email not found OR password is incorrect
+                (same error to prevent email enumeration attacks)
+
+        Security Note:
+            We intentionally return the same error for both "user not found"
+            and "wrong password" to prevent attackers from discovering valid
+            email addresses in our system.
         """
         logger.info("Authentication attempt")
 
         user = UserService.get_by_email(email)
-        if not user:
-            logger.warning("Authentication failed: user not found")
-            raise UserNotFoundError("User not found")
 
-        if not user.check_password(password):
-            logger.warning(f"Authentication failed: invalid password for user_id={user.id}")
-            raise InvalidCredentialsError("Invalid password")
+        # Security: Return same error for user not found AND wrong password
+        # This prevents email enumeration attacks
+        if not user or not user.check_password(password):
+            logger.warning("Authentication failed: invalid credentials")
+            raise InvalidCredentialsError("Invalid email or password")
 
         logger.info(f"User authenticated successfully: user_id={user.id}")
         return user

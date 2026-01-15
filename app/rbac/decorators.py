@@ -58,6 +58,55 @@ from app.utils.responses import ErrorCode, error_response
 logger = logging.getLogger(__name__)
 
 
+def _verify_authenticated_user():
+    """
+    Common user verification logic for RBAC decorators.
+
+    Performs:
+    1. JWT token verification
+    2. Current user retrieval
+    3. Active status check
+
+    Returns:
+        tuple: (User, None) on success, (None, error_response) on failure
+
+    Usage:
+        user, error = _verify_authenticated_user()
+        if error:
+            return error
+        # Continue with user...
+    """
+    # Step 1: Verify JWT token
+    try:
+        verify_jwt_in_request()
+    except Exception as e:
+        logger.warning(f"JWT verification failed: {e}")
+        return None, error_response(
+            code=ErrorCode.UNAUTHORIZED,
+            message="Authentication required",
+            status_code=401,
+        )
+
+    # Step 2: Get current user
+    user = get_current_user()
+    if user is None:
+        return None, error_response(
+            code=ErrorCode.UNAUTHORIZED,
+            message="User not found or inactive",
+            status_code=401,
+        )
+
+    # Step 3: Check if user is active
+    if not user.is_active:
+        return None, error_response(
+            code=ErrorCode.FORBIDDEN,
+            message="User account is deactivated",
+            status_code=403,
+        )
+
+    return user, None
+
+
 def permission_required(
     *permissions: str,
     require_all: bool = False,
@@ -111,35 +160,12 @@ def permission_required(
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            # Step 1: Verify JWT token
-            try:
-                verify_jwt_in_request()
-            except Exception as e:
-                logger.warning(f"JWT verification failed: {e}")
-                return error_response(
-                    code=ErrorCode.UNAUTHORIZED,
-                    message="Authentication required",
-                    status_code=401,
-                )
+            # Verify user authentication (JWT + active status)
+            user, auth_error = _verify_authenticated_user()
+            if auth_error:
+                return auth_error
 
-            # Step 2: Get current user
-            user = get_current_user()
-            if user is None:
-                return error_response(
-                    code=ErrorCode.UNAUTHORIZED,
-                    message="User not found or inactive",
-                    status_code=401,
-                )
-
-            # Step 3: Check if user is active
-            if not user.is_active:
-                return error_response(
-                    code=ErrorCode.FORBIDDEN,
-                    message="User account is deactivated",
-                    status_code=403,
-                )
-
-            # Step 4: Check permissions
+            # Check permissions
             if require_all:
                 has_access = RBACService.user_has_all_permissions(user, list(permissions))
             else:
@@ -160,7 +186,7 @@ def permission_required(
                     status_code=403,
                 )
 
-            # Step 5: Execute the route handler
+            # Execute the route handler
             return fn(*args, **kwargs)
 
         return wrapper
@@ -214,35 +240,12 @@ def role_required(
     def decorator(fn):
         @wraps(fn)
         def wrapper(*args, **kwargs):
-            # Step 1: Verify JWT token
-            try:
-                verify_jwt_in_request()
-            except Exception as e:
-                logger.warning(f"JWT verification failed: {e}")
-                return error_response(
-                    code=ErrorCode.UNAUTHORIZED,
-                    message="Authentication required",
-                    status_code=401,
-                )
+            # Verify user authentication (JWT + active status)
+            user, auth_error = _verify_authenticated_user()
+            if auth_error:
+                return auth_error
 
-            # Step 2: Get current user
-            user = get_current_user()
-            if user is None:
-                return error_response(
-                    code=ErrorCode.UNAUTHORIZED,
-                    message="User not found or inactive",
-                    status_code=401,
-                )
-
-            # Step 3: Check if user is active
-            if not user.is_active:
-                return error_response(
-                    code=ErrorCode.FORBIDDEN,
-                    message="User account is deactivated",
-                    status_code=403,
-                )
-
-            # Step 4: Check roles
+            # Check roles
             if require_all:
                 has_access = user.has_all_roles(*roles)
             else:
@@ -263,7 +266,7 @@ def role_required(
                     status_code=403,
                 )
 
-            # Step 5: Execute the route handler
+            # Execute the route handler
             return fn(*args, **kwargs)
 
         return wrapper
