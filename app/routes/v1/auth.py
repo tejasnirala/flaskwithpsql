@@ -11,9 +11,11 @@ These routes handle JWT-based authentication:
 Version: 1
 Prefix: /api/v1/auth
 
-Note:
-    This file was moved from app/auth/v1/routes.py to app/routes/v1/auth.py
-    for consistent project structure. All routes should live in app/routes/.
+Architecture Note:
+    These routes follow the thin-controller pattern:
+    - Routes handle HTTP concerns (request/response, status codes)
+    - AuthService handles business logic (authentication, token management)
+    - This separation makes the code testable and reusable
 """
 
 import logging
@@ -23,9 +25,14 @@ from flask_jwt_extended import get_jwt, jwt_required
 from flask_openapi3 import APIBlueprint, Tag
 from pydantic import BaseModel, EmailStr, Field
 
-from app.auth import create_tokens, get_current_user, revoke_token
+from app.auth import get_current_user
 from app.schemas import UserCreateSchema, UserResponseSchema
-from app.services import InvalidCredentialsError, UserAlreadyExistsError, UserService
+from app.services import (
+    AuthService,
+    InvalidCredentialsError,
+    UserAlreadyExistsError,
+    UserNotAuthenticatedError,
+)
 from app.utils.rate_limiter import api_limit, auth_limit
 from app.utils.responses import (
     ErrorCode,
@@ -126,13 +133,20 @@ def register_user(body: UserCreateSchema):
     """
     Create a new user.
 
-    Delegates to UserService for business logic.
+    Delegates to AuthService.register for business logic.
     """
     try:
-        user = UserService.create_user(body)
-        response_data = UserResponseSchema.model_validate(user)
+        user_data = AuthService.register(
+            username=body.username,
+            email=body.email,
+            password=body.password,
+            first_name=body.first_name,
+            middle_name=body.middle_name,
+            last_name=body.last_name,
+            bio=body.bio,
+        )
         return success_response(
-            data=response_data.to_dict(),
+            data=user_data,
             message="User created successfully",
             status_code=201,
         )
@@ -173,20 +187,13 @@ def login(body: LoginRequest):
     """
     Login and get JWT tokens.
 
+    Delegates to AuthService.login for business logic.
     Rate limited to prevent brute-force attacks.
     """
     try:
-        user = UserService.authenticate(body.email, body.password)
-        tokens = create_tokens(user)
-
-        # Include user info in response
-        user_data = UserResponseSchema.model_validate(user).to_dict()
-
+        result = AuthService.login(body.email, body.password)
         return success_response(
-            data={
-                **tokens,
-                "user": user_data,
-            },
+            data=result,
             message="Login successful",
         )
     except InvalidCredentialsError:
@@ -218,11 +225,11 @@ Client should also discard the refresh token.
 def logout():
     """
     Logout and revoke current token.
+
+    Delegates to AuthService.logout for business logic.
     """
     jti = get_jwt()["jti"]
-    revoke_token(jti)
-
-    logger.info("User logged out successfully")
+    AuthService.logout(jti)
 
     return success_response(message="Logout successful")
 
@@ -248,21 +255,22 @@ Authorization: Bearer <refresh_token>
 def refresh():
     """
     Get new access token using refresh token.
+
+    Delegates to AuthService.refresh_tokens for business logic.
     """
-    user = get_current_user()
-    if not user:
+    try:
+        user = get_current_user()
+        tokens = AuthService.refresh_tokens(user)
+        return success_response(
+            data=tokens,
+            message="Token refreshed",
+        )
+    except UserNotAuthenticatedError:
         return error_response(
             code=ErrorCode.UNAUTHORIZED,
             message="User not found",
             status_code=401,
         )
-
-    tokens = create_tokens(user)
-
-    return success_response(
-        data=tokens,
-        message="Token refreshed",
-    )
 
 
 @auth_bp_v1.get(
@@ -279,15 +287,16 @@ def refresh():
 def get_me():
     """
     Get current user info.
+
+    Delegates to AuthService.get_current_user_info for business logic.
     """
-    user = get_current_user()
-    if not user:
+    try:
+        user = get_current_user()
+        user_data = AuthService.get_current_user_info(user)
+        return success_response(data=user_data)
+    except UserNotAuthenticatedError:
         return error_response(
             code=ErrorCode.UNAUTHORIZED,
             message="User not found",
             status_code=401,
         )
-
-    user_data = UserResponseSchema.model_validate(user).to_dict()
-
-    return success_response(data=user_data)

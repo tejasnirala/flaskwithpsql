@@ -12,15 +12,24 @@ Why Services?
 4. Easier to understand and maintain
 
 Usage:
-    from app.services import UserService
+    from app.services import UserService, AuthService
 
     # Create a user
     user = UserService.create_user(data)
 
-    # Authenticate
-    user = UserService.authenticate(email, password)
+    # Authenticate and get tokens
+    result = AuthService.login(email, password)
+
+    # Logout
+    AuthService.logout(jti)
 """
 
+from app.services.auth_service import (
+    AuthService,
+    AuthServiceError,
+    TokenRevocationError,
+    UserNotAuthenticatedError,
+)
 from app.services.user_service import (
     InvalidCredentialsError,
     UserAlreadyExistsError,
@@ -30,9 +39,15 @@ from app.services.user_service import (
 )
 
 __all__ = [
+    # User Service
     "UserService",
     "UserServiceError",
     "UserNotFoundError",
     "UserAlreadyExistsError",
     "InvalidCredentialsError",
+    # Auth Service
+    "AuthService",
+    "AuthServiceError",
+    "UserNotAuthenticatedError",
+    "TokenRevocationError",
 ]
